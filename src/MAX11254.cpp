@@ -106,20 +106,26 @@ void MAX11254::writeSEQ(uint8_t val) {
     return write8bitRegister(MAX11254_SEQ_REG, val);
     }
 
+////////////////////////
+//  CONVERSION COMMAND    //
+/////////////////////////
+
 void MAX11254::conversionCommand(uint8_t val) {
-    return write8bitCommand(val);
+    // conversion command (see Table 4 p22)
+    SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
+    digitalWrite(_cs, LOW);
+    SPI.transfer(0b10000000 | (cmd & 0b111111));
+    digitalWrite(_cs, HIGH);
+    SPI.endTransaction();
     }
 
 /////////////////////////
 //  PRIVATE METHODS    //
 /////////////////////////
 
-void MAX11254::write8bitCommand(uint8_t cmd) {
-    SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
-    digitalWrite(_cs, LOW);
-    SPI.transfer(0b10000000 | (cmd & 0b111111));
-    digitalWrite(_cs, HIGH);
-    SPI.endTransaction();
+uint8_t MAX11254::getRegisterCmdByte(uint8_t reg, bool read) {
+    // register read/write (see Table 4 p22)
+    return 0b11000000 | (reg << 1) | (read ? 1 : 0);
     }
 
 void MAX11254::write8bitRegister(uint8_t reg, uint8_t val) {
@@ -162,6 +168,18 @@ uint8_t MAX11254::read8bitRegister(uint8_t reg) {
     return result;
     }
 
+uint16_t MAX11254::read16bitRegister(uint8_t reg) {
+    SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
+    digitalWrite(_cs, LOW);
+    SPI.transfer(getCmd(reg,true));
+    int16_t result = 0;
+    result = result | SPI.transfer(0x00); result = result << 8;
+    result = result | SPI.transfer(0x00);
+    digitalWrite(_cs, HIGH);
+    SPI.endTransaction();
+    return result;
+    }
+
 uint32_t MAX11254::read24bitRegister(uint8_t reg) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
@@ -173,8 +191,4 @@ uint32_t MAX11254::read24bitRegister(uint8_t reg) {
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
     return result;
-    }
-
-uint8_t MAX11254::getCmd(uint8_t reg, bool read) {
-    return MAX11254_MSBS | (reg << 1) | (read ? MAX11254_RBIT : MAX11254_WBIT);
     }
