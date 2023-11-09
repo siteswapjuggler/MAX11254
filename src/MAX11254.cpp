@@ -86,6 +86,22 @@ void MAX11254::writeCTRL3(uint8_t val) {
     return write8bitRegister(MAX11254_CTRL3_REG, val);
     }
 
+void MAX11254::writeGPIO_CTRL(uint8_t val) {
+    return write8bitRegister(MAX11254_GPIO_CTRL_REG, val);
+    }
+
+void MAX11254::writeDELAY(uint16_t val) {
+    return write16bitRegister(MAX11254_DELAY_REG, val);
+    }
+
+void MAX11254::writeCHMAP0(uint32_t val) {
+    return write24bitRegister(MAX11254_CHMAP0_REG, val);
+    }
+
+void MAX11254::writeCHMAP1(uint32_t val) {
+    return write24bitRegister(MAX11254_CHMAP1_REG, val);
+    }
+
 void MAX11254::writeSEQ(uint8_t val) {
     return write8bitRegister(MAX11254_SEQ_REG, val);
     }
@@ -115,13 +131,23 @@ void MAX11254::write8bitRegister(uint8_t reg, uint8_t val) {
     SPI.endTransaction();
     }
 
+void MAX11254::write16bitRegister(uint8_t reg, uint16_t val) {
+    SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
+    digitalWrite(_cs, LOW);
+    SPI.transfer(getCmd(reg));
+    SPI.transfer(val>>8 & 0xFF);
+    SPI.transfer(val & 0xFF);
+    digitalWrite(_cs, HIGH);
+    SPI.endTransaction();
+    }
+		
 void MAX11254::write24bitRegister(uint8_t reg, uint32_t val) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
     SPI.transfer(getCmd(reg));
-    SPI.transfer(val>>16 & 0xFF);;
-    SPI.transfer(val>>8 & 0xFF);;
-    SPI.transfer(val & 0xFF);;
+    SPI.transfer(val>>16 & 0xFF);
+    SPI.transfer(val>>8 & 0xFF);
+    SPI.transfer(val & 0xFF);
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
     }

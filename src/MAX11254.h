@@ -42,6 +42,7 @@
     class MAX11254 {
         public:
             MAX11254();
+						
             void begin(uint8_t cs);
         
             uint32_t readSTAT();
@@ -59,6 +60,10 @@
             void     writeCTRL1(uint8_t val);
             void     writeCTRL2(uint8_t val);
             void     writeCTRL3(uint8_t val);
+						void		 writeGPIO_CTRL(uint8_t val);
+						void		 writeDELAY(uint16_t val);
+						void		 writeCHMAP0(uint32_t val);
+						void		 writeCHMAP1(uint32_t val);
             void     writeSEQ(uint8_t val);
             void     conversionCommand(uint8_t val);
 
@@ -67,6 +72,7 @@
             uint8_t getCmd(uint8_t reg, bool read = false);      // calculate cmd byte
             void write8bitCommand(uint8_t cmd);                  // write 8 bit command
             void write8bitRegister(uint8_t reg, uint8_t val);    // write 8 bit data into a register
+            void write16bitRegister(uint8_t reg, uint16_t val);  // write 24 bit data into a register
             void write24bitRegister(uint8_t reg, uint32_t val);  // write 24 bit data into a register
             uint8_t  read8bitRegister(uint8_t reg);              // read 8 bit data in a specific register
             uint32_t read24bitRegister(uint8_t reg);             // read signed 24 bit data in a specific register
