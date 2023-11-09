@@ -25,6 +25,34 @@ void MAX11254::begin(uint8_t cs) {
 //  READ METHODS    //
 /////////////////////////
 
+int32_t MAX11254::analogRead(uint8_t channel) {
+    //--------------------------------------------------------------------------------------
+    // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
+    //--------------------------------------------------------------------------------------
+
+    uint8_t MAX11254_SEQ_MUX = (channel > 6 ? 6 : channel) << 5;              // cost some cycles but safer for casual usage
+    writeSEQ(MAX11254_SEQ_MUX | MAX11254_SEQ_MODE1 | MAX11254_SEQ_MDREN);     // enable mux delay
+    writeDELAY(0x00);                                                         // default no delay (p44)
+    writeCTRL1(MAX11254_CTRL1_SCYCLE | MAX11254_CTRL1_FORMAT);                // single cycle (no latency), go back to sleep after that
+    
+    //--------------------------------------------------------------------------------------
+    // GPO_DIR and GPIO_CTRL can be include here or preferably before to set GPIO parameters
+    //--------------------------------------------------------------------------------------
+
+    sendConversionCommand(MAX11254_SEQUENCER_MODE | MAX11254_125SPS);         // SEQ conversion, 125 sps
+    
+    //--------------------------------------------------------------------------------------
+    // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
+    //--------------------------------------------------------------------------------------
+
+    delay(10);                     // for now we ignore RDYB
+    return readDATA(channel);      // return DATA according to channel
+    }
+
+/////////////////////////
+//  READ METHODS    //
+/////////////////////////
+
 uint32_t MAX11254::readSTAT() {
     return read24bitRegister(MAX11254_STAT_REG);
     }
@@ -45,30 +73,10 @@ uint8_t MAX11254::readSEQ() {
     return read8bitRegister(MAX11254_SEQ_REG);
     }
 
-uint32_t MAX11254::readDATA0() {
-    return read24bitRegister(MAX11254_DATA0_REG);
+uint32_t MAX11254::readDATA(byte channel) {
+    channel = channel > 5 ? 5 : channel;
+    return read24bitRegister(MAX11254_DATA0_REG + channel);
     }
-
-uint32_t MAX11254::readDATA1() {
-    return read24bitRegister(MAX11254_DATA1_REG);
-    }
-
-uint32_t MAX11254::readDATA2() {
-    return read24bitRegister(MAX11254_DATA2_REG);
-    }
-
-uint32_t MAX11254::readDATA3() {
-    return read24bitRegister(MAX11254_DATA3_REG);
-    }
-
-uint32_t MAX11254::readDATA4() {
-    return read24bitRegister(MAX11254_DATA4_REG);
-    }
-
-uint32_t MAX11254::readDATA5() {
-    return read24bitRegister(MAX11254_DATA5_REG);
-    }
-
 
 /////////////////////////
 //  WRITE METHODS    //
@@ -110,7 +118,7 @@ void MAX11254::writeSEQ(uint8_t val) {
 //  CONVERSION COMMAND    //
 /////////////////////////
 
-void MAX11254::conversionCommand(uint8_t val) {
+void MAX11254::sendConversionCommand(uint8_t cmd) {
     // conversion command (see Table 4 p22)
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
@@ -131,7 +139,7 @@ uint8_t MAX11254::getRegisterCmdByte(uint8_t reg, bool read) {
 void MAX11254::write8bitRegister(uint8_t reg, uint8_t val) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg));
+    SPI.transfer(getRegisterCmdByte(reg));
     SPI.transfer(val);;
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
@@ -140,7 +148,7 @@ void MAX11254::write8bitRegister(uint8_t reg, uint8_t val) {
 void MAX11254::write16bitRegister(uint8_t reg, uint16_t val) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg));
+    SPI.transfer(getRegisterCmdByte(reg));
     SPI.transfer(val>>8 & 0xFF);
     SPI.transfer(val & 0xFF);
     digitalWrite(_cs, HIGH);
@@ -150,7 +158,7 @@ void MAX11254::write16bitRegister(uint8_t reg, uint16_t val) {
 void MAX11254::write24bitRegister(uint8_t reg, uint32_t val) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg));
+    SPI.transfer(getRegisterCmdByte(reg));
     SPI.transfer(val>>16 & 0xFF);
     SPI.transfer(val>>8 & 0xFF);
     SPI.transfer(val & 0xFF);
@@ -161,7 +169,7 @@ void MAX11254::write24bitRegister(uint8_t reg, uint32_t val) {
 uint8_t MAX11254::read8bitRegister(uint8_t reg) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg,true));
+    SPI.transfer(getRegisterCmdByte(reg,true));
     uint8_t result = SPI.transfer(0x00);
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
@@ -171,7 +179,7 @@ uint8_t MAX11254::read8bitRegister(uint8_t reg) {
 uint16_t MAX11254::read16bitRegister(uint8_t reg) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg,true));
+    SPI.transfer(getRegisterCmdByte(reg,true));
     int16_t result = 0;
     result = result | SPI.transfer(0x00); result = result << 8;
     result = result | SPI.transfer(0x00);
@@ -183,7 +191,7 @@ uint16_t MAX11254::read16bitRegister(uint8_t reg) {
 uint32_t MAX11254::read24bitRegister(uint8_t reg) {
     SPI.beginTransaction(SPISettings(MAX11254_SPI_SPEED, MSBFIRST, MAX11254_SPI_MODE));
     digitalWrite(_cs, LOW);
-    SPI.transfer(getCmd(reg,true));
+    SPI.transfer(getRegisterCmdByte(reg,true));
     int32_t result = 0;
     result = result | SPI.transfer(0x00); result = result << 8;
     result = result | SPI.transfer(0x00); result = result << 8;

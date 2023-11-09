@@ -4,24 +4,35 @@
 #include <elapsedMillis.h>
 
 MAX11254 adc;
+uint32_t adcValues[6];
 elapsedMillis scaleTimer;
 
 void setup() {
+  resetPeripherals();               // specific of our test setup
+
   Serial.begin(115200);             // start serial communication
   adc.begin(21);                    // start MAX11254 with PIN 21 for CS
-  resetPeripherals();
 
+/* for notes only 
   adc.writeCTRL1(0b10000101);       // self-calibration, offset binary, continuous cycles
   adc.writeCTRL2(0b00101111);       // internal LDO, PGA enable, 128 gain
   adc.writeCTRL3(0b00000000);       // calibration settings
   adc.writeSEQ(0b00000001);         // ready bar enable
-
   adc.conversionCommand(0b110110);  // SEQ conversion, 125 sps
+*/
 }
 
 void loop() {
-  adc.readDATA0();
+  for (byte i = 0; i < 6; i++) {
+    adcValues[i] = adc.analogRead(i);
+  }
+
+  for (byte i = 0; i < 6; i++) {
+    Serial.print(adcValues[i]);
+    Serial.print("\t");
+  }
   Serial.println();
+
   delay(10);
 }
 

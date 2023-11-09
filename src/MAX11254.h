@@ -37,7 +37,56 @@
     #define MAX11254_DATA4_REG       0x12           // R    24bit
     #define MAX11254_DATA5_REG       0x13           // R    24bit
 
+    // CONVERSION REGISTER
 
+    #define MAX11254_PD_MODE               0b00010000
+    #define MAX11254_CALIBRATION_MODE      0b00100000
+    #define MAX11254_SEQUENCER_MODE        0b00110000
+
+    #define MAX11254_50SPS                 0b0000
+    #define MAX11254_62SPS                 0b0001
+    #define MAX11254_100SPS                0b0010
+    #define MAX11254_125SPS                0b0011
+    #define MAX11254_200SPS                0b0100
+    #define MAX11254_250SPS                0b0101
+    #define MAX11254_400SPS                0b0110
+    #define MAX11254_500SPS                0b0111
+    #define MAX11254_800SPS                0b1000
+    #define MAX11254_1000SPS               0b1001
+    #define MAX11254_1600SPS               0b1010
+    #define MAX11254_2000SPS               0b1011
+    #define MAX11254_3200SPS               0b1100
+    #define MAX11254_4000SPS               0b1101
+    #define MAX11254_6400SPS               0b1110
+    #define MAX11254_12800SPS              0b1111
+
+    // SEQ REGISTER
+
+    #define MAX11254_SEQ_RDYBEN            0b00000001
+    #define MAX11254_SEQ_MDREN             0b00000010
+    #define MAX11254_SEQ_GPODREN           0b00000100
+    #define MAX11254_SEQ_MODE1             0b00000000
+    #define MAX11254_SEQ_MODE2             0b00001000
+    #define MAX11254_SEQ_MODE3             0b00010000
+
+
+    // CTRL1 REGISTER
+
+    #define MAX11254_CTRL1_FORMAT          0b00000100
+
+    #define MAX11254_CTRL1_SCYCLE          0b00000010
+    #define MAX11254_CTRL1_CONTSC          0b00000001
+
+    #define MAX11254_CTRL1_CAL_MASK        0b11000000
+    #define MAX11254_CTRL1_CAL_SELF        0b00000000
+    #define MAX11254_CTRL1_CAL_OFFSET      0b01000000
+    #define MAX11254_CTRL1_CAL_FULLSCALE   0b10000000
+
+    #define MAX11254_CTRL1_PD_MASK         0b00110000
+    #define MAX11254_CTRL1_PD_NOP          0b00000000
+    #define MAX11254_CTRL1_PD_SLEEP        0b00010000
+    #define MAX11254_CTRL1_PD_STANDBY      0b00100000
+    #define MAX11254_CTRL1_PD_RESET        0b00110000
 
     class MAX11254 {
         public:
@@ -50,12 +99,8 @@
             uint8_t  readCTRL2();
             uint8_t  readCTRL3();
             uint8_t  readSEQ();
-            uint32_t readDATA0();
-            uint32_t readDATA1();
-            uint32_t readDATA2();
-            uint32_t readDATA3();
-            uint32_t readDATA4();
-            uint32_t readDATA5();
+            uint32_t readDATA(uint8_t channel);
+            int32_t  analogRead(uint8_t channel);   // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
 
             void    writeCTRL1(uint8_t val);
             void    writeCTRL2(uint8_t val);
