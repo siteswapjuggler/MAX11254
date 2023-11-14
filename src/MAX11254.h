@@ -59,6 +59,15 @@
     #define MAX11254_4000SPS               0b1101
     #define MAX11254_6400SPS               0b1110
     #define MAX11254_12800SPS              0b1111
+		
+    #define MAX11254_PGA_G1        	 			 0b00000000
+    #define MAX11254_PGA_G2        	 			 0b00000001
+    #define MAX11254_PGA_G4        	 			 0b00000010
+    #define MAX11254_PGA_G8        	 			 0b00000011
+    #define MAX11254_PGA_G16         			 0b00000100
+    #define MAX11254_PGA_G32         			 0b00000101
+    #define MAX11254_PGA_G64         			 0b00000110
+    #define MAX11254_PGA_G128        			 0b00000111
 
     // SEQ REGISTER
 
@@ -87,6 +96,27 @@
     #define MAX11254_CTRL1_PD_SLEEP        0b00010000
     #define MAX11254_CTRL1_PD_STANDBY      0b00100000
     #define MAX11254_CTRL1_PD_RESET        0b00110000
+		
+    // CTRL2 REGISTER
+		
+    #define MAX11254_CTRL2_EXTCLK          0b10000000
+    #define MAX11254_CTRL2_CSSEN           0b01000000
+    #define MAX11254_CTRL2_LDOEN           0b00100000
+    #define MAX11254_CTRL2_LPMODE          0b00010000
+    #define MAX11254_CTRL2_PGAEN           0b00001000
+		
+    #define MAX11254_CTRL2_PGA_MASK        0b00000111
+		
+    // CTRL3 REGISTER
+		
+    #define MAX11254_CTRL3_GPO_MODE        0b01000000
+    #define MAX11254_CTRL3_SYNC_MODE       0b00100000
+    #define MAX11254_CTRL3_CALREGSEL       0b00010000
+    #define MAX11254_CTRL3_NOSYSG          0b00001000
+    #define MAX11254_CTRL3_NOSYSO          0b00000100
+    #define MAX11254_CTRL3_NOSCG           0b00000010
+    #define MAX11254_CTRL3_NOSCO           0b00000001
+		
 
     class MAX11254 {
         public:
@@ -102,6 +132,7 @@
             uint32_t readDATA(uint8_t channel);
             int32_t  analogRead(uint8_t channel);   // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
 
+
             void    writeCTRL1(uint8_t val);
             void    writeCTRL2(uint8_t val);
             void    writeCTRL3(uint8_t val);
@@ -112,9 +143,14 @@
             void    writeSEQ(uint8_t val);
         
             void    sendConversionCommand(uint8_t val);
+						
+						void 		setPGA(uint8_t gain);
+						void 		setSPS(uint8_t SPS);
+						uint8_t getSPS(void);
 
         private:
             uint8_t _cs;                                                    // chip select pin
+						uint32_t _sr;																										// sample rate
             uint8_t getRegisterCmdByte(uint8_t reg, bool read = false);     // calculate cmd byte
         
             void write8bitRegister(uint8_t reg, uint8_t val);               // write 8 bit register
@@ -124,6 +160,7 @@
             uint8_t  read8bitRegister(uint8_t reg);                         // read 8 bit register
             uint16_t read16bitRegister(uint8_t reg);                        // read 16 bit register
             uint32_t read24bitRegister(uint8_t reg);                        // read 24 bit register
+						
         };
 
 //p49
