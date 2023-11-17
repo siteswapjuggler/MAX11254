@@ -16,7 +16,7 @@ MAX11254::MAX11254() {
 
 void MAX11254::begin(uint8_t cs) {
     _cs = cs;                // choose the chip select pin
-		_sr = MAX11254_125SPS;	 // default sample rate
+    _sr = MAX11254_125SPS;	 // default sample rate
     pinMode(_cs,OUTPUT);     // set the pin as output
     digitalWrite(_cs,HIGH);  // set the pin to default HIGH state
     SPI.begin();             // initiate SPI
@@ -29,40 +29,37 @@ int32_t MAX11254::analogRead(uint8_t channel) {
     // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
     //--------------------------------------------------------------------------------------
 
-    uint8_t MAX11254_SEQ_MUX = (channel > 6 ? 6 : channel) << 5;              // cost some cycles but safer for casual usage
+    uint8_t MAX11254_SEQ_MUX = (channel > 6 ? 6 : channel) << 5;                                    // cost some cycles but safer for casual usage
     writeSEQ(MAX11254_SEQ_MUX | MAX11254_SEQ_MODE1 | MAX11254_SEQ_MDREN | MAX11254_SEQ_RDYBEN);     // enable mux delay
-    writeDELAY(0x00);                                                         // default no delay (p44)
-    writeCTRL1(MAX11254_CTRL1_SCYCLE | MAX11254_CTRL1_FORMAT);                // single cycle (no latency), go back to sleep after that
+    writeDELAY(0x00);                                                                               // default no delay (p44)
+    writeCTRL1(MAX11254_CTRL1_SCYCLE | MAX11254_CTRL1_FORMAT);                                      // single cycle (no latency), go back to sleep after that
     
     //--------------------------------------------------------------------------------------
     // GPO_DIR and GPIO_CTRL can be include here or preferably before to set GPIO parameters
     //--------------------------------------------------------------------------------------
 
-    sendConversionCommand(MAX11254_SEQUENCER_MODE | _sr);         // SEQ conversion, 125 sps
+    sendConversionCommand(MAX11254_SEQUENCER_MODE | _sr);                                           // SEQ conversion
     
     //--------------------------------------------------------------------------------------
     // SEQUENCER MODE 1 : Single-Channel Conversion (p23)
     //--------------------------------------------------------------------------------------
-		while(!(readSTAT() & 0x1));		 // 
-    //delay(10);                     // for now we ignore RDYB
+    while(!(readSTAT() & 0x1));	   // whait for RDYB
     return readDATA(channel);      // return DATA according to channel
     }
 
 void MAX11254::setPGA(uint8_t gain) {
-		uint8_t MAX11254_CTRL2_value = readCTRL2();
-		gain &= MAX11254_CTRL2_PGA_MASK;
-		if(gain == MAX11254_PGA_G1) {									// disable PGA for G = 1
-			writeCTRL2(MAX11254_CTRL2_value & ~(MAX11254_CTRL2_LPMODE | MAX11254_CTRL2_PGAEN | MAX11254_CTRL2_PGA_MASK));
-		}
-		else {
-			writeCTRL2((MAX11254_CTRL2_value & ~(MAX11254_CTRL2_PGA_MASK)) | MAX11254_CTRL2_PGAEN | gain);
-		}
-		return;
+    uint8_t MAX11254_CTRL2_value = readCTRL2();
+    gain &= MAX11254_CTRL2_PGA_MASK;
+    
+    // disable PGA for G = 1
+    if(gain == MAX11254_PGA_G1) writeCTRL2((MAX11254_CTRL2_value & ~(MAX11254_CTRL2_LPMODE)    | MAX11254_CTRL2_PGAEN | MAX11254_CTRL2_PGA_MASK));
+    else                        writeCTRL2((MAX11254_CTRL2_value & ~(MAX11254_CTRL2_PGA_MASK)) | MAX11254_CTRL2_PGAEN | gain);
+    return;
 }
 
 void MAX11254::setSPS(uint8_t sps) {
-		_sr = (sps & 0xF);
-		return;
+    _sr = (sps & 0xF);
+    return;
 }
 
 /////////////////////////

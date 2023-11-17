@@ -59,15 +59,6 @@
     #define MAX11254_4000SPS               0b1101
     #define MAX11254_6400SPS               0b1110
     #define MAX11254_12800SPS              0b1111
-		
-    #define MAX11254_PGA_G1        	 			 0b00000000
-    #define MAX11254_PGA_G2        	 			 0b00000001
-    #define MAX11254_PGA_G4        	 			 0b00000010
-    #define MAX11254_PGA_G8        	 			 0b00000011
-    #define MAX11254_PGA_G16         			 0b00000100
-    #define MAX11254_PGA_G32         			 0b00000101
-    #define MAX11254_PGA_G64         			 0b00000110
-    #define MAX11254_PGA_G128        			 0b00000111
 
     // SEQ REGISTER
 
@@ -106,7 +97,15 @@
     #define MAX11254_CTRL2_PGAEN           0b00001000
 		
     #define MAX11254_CTRL2_PGA_MASK        0b00000111
-		
+    #define MAX11254_PGA1                  0b000
+    #define MAX11254_PGA2                  0b001
+    #define MAX11254_PGA4                  0b010
+    #define MAX11254_PGA8                  0b011
+    #define MAX11254_PGA16                 0b100
+    #define MAX11254_PGA32                 0b101
+    #define MAX11254_PGA64                 0b110
+    #define MAX11254_PGA128                0b111
+
     // CTRL3 REGISTER
 		
     #define MAX11254_CTRL3_GPO_MODE        0b01000000
@@ -144,13 +143,13 @@
         
             void    sendConversionCommand(uint8_t val);
 						
-						void 		setPGA(uint8_t gain);
-						void 		setSPS(uint8_t SPS);
-						uint8_t getSPS(void);
+            void 	setPGA(uint8_t gain);
+            void 	setSPS(uint8_t SPS);
+            uint8_t getSPS(void);
 
         private:
-            uint8_t _cs;                                                    // chip select pin
-						uint32_t _sr;																										// sample rate
+            uint8_t  _cs;                                                   // chip select pin
+            uint32_t _sr;												    // sample rate
             uint8_t getRegisterCmdByte(uint8_t reg, bool read = false);     // calculate cmd byte
         
             void write8bitRegister(uint8_t reg, uint8_t val);               // write 8 bit register
